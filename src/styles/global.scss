@@ -1,0 +1,7 @@
+@use './vars.scss';
+
+body {
+  font-family: 'Montserrat', sans-serif;
+  background: vars.$blue;
+  color: #fff;
+}

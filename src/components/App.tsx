@@ -1,19 +1,17 @@
+import Cell from './Cell';
+import Board from './Board';
+
+const puzzle: string =
+  '001203400000607000500000003370000081000000000620000037100000008000805000006402500';
+
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Board>
+        {puzzle.split('').map((num: string, i: number) => (
+          <Cell key={i} value={num} index={i} />
+        ))}
+      </Board>
     </div>
   );
 }
