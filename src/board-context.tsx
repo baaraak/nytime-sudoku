@@ -71,12 +71,14 @@ function BoardProvider({ children }: BoardProviderProps) {
   };
 
   const handleKeyboardGestures = (e: KeyboardEvent) => {
+    if (!puzzle) return;
     const addOrRemove = (arr: number[], item: number) =>
       arr.includes(item) ? arr.filter((i) => i !== item) : [...arr, item];
     // TODO: find better way then e.which (deprecated), problem with shiftKey+number return symbol
     let charCode = String.fromCharCode(e.which).toLowerCase();
 
     if (e.shiftKey && isNumeric(charCode)) {
+      // User clicked shiftKey+number = side pencil marks
       setPuzzle((p) =>
         p?.map((cell, i) => {
           if (cell.active)
@@ -88,6 +90,7 @@ function BoardProvider({ children }: BoardProviderProps) {
         })
       );
     } else if (e.ctrlKey && isNumeric(e.key)) {
+      // User clicked ctrlKey+number = center pencil marks
       setPuzzle((p) =>
         p?.map((cell, i) => {
           if (cell.active)
@@ -99,6 +102,19 @@ function BoardProvider({ children }: BoardProviderProps) {
         })
       );
     } else if (isNumeric(e.key)) {
+      // User clicked a number = if multiple cells are active, update all cells
+      if (puzzle?.filter((p) => p.active).length > 1) {
+        return setPuzzle((p) =>
+          p?.map((cell, i) => {
+            if (cell.active)
+              return {
+                ...cell,
+                sPencilmarks: addOrRemove(cell.sPencilmarks, Number(charCode)),
+              };
+            return cell;
+          })
+        );
+      }
       updateCellValue(parseInt(e.key));
     } else if (e.key === 'ArrowRight' || e.key === 'd') {
       const prevActive = puzzle?.findIndex((cell) => cell.active);
@@ -117,6 +133,7 @@ function BoardProvider({ children }: BoardProviderProps) {
       // if (prevActive === 0) return setActive(80);
       setActive((prevActive || 0) + 9);
     } else if (e.key === 'Backspace') {
+      // remove cell value
       updateCellValue(0);
     }
   };

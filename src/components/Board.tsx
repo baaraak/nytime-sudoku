@@ -91,7 +91,7 @@ function Board({ children }: Props) {
     setKeyboardWidth(dimension.keyboard);
   };
 
-  // listening to the window to detect events outside the board to clear the active cells
+  // to detect cliocks outside the board
   useEventListener('keydown', handleKeyDown);
   useEventListener('mousedown', handleMouseDown);
   useEventListener('mouseup', handleMouseUp);
