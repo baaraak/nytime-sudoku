@@ -1,3 +1,4 @@
+import { KeyModeType } from 'board-context';
 import { useBoard } from 'hooks/useBoard';
 import useEventListener from 'hooks/useEventListener';
 import { MAXMIMUM_CELL_SIZE } from 'lib/constants';
@@ -32,17 +33,19 @@ function Board({ children }: Props) {
     Math.min(dimension.board / 9, MAXMIMUM_CELL_SIZE)
   );
   const [keyboardWidth, setKeyboardWidth] = useState(dimension.keyboard);
-  const { setActive, onDoubleClick, handleKeyboardGestures } = useBoard();
+  const { setActive, onDoubleClick, handleKeyboardGestures, setMode } =
+    useBoard();
   const movingGestureCells = useRef<number[]>([]);
   const isMoving = useRef<boolean>(false);
   const boardRef = useRef<HTMLDivElement>(null);
+  const keyboardRef = useRef<HTMLDivElement>(null);
 
   const handleClick = (e: React.MouseEvent) => {
     if (!boardRef.current?.contains(e.target as Node)) return setActive([]);
     const index = getIndexAttribute(e.target);
 
     if (index) {
-      setActive(index);
+      setActive(index, e.shiftKey);
     }
   };
 
@@ -55,15 +58,25 @@ function Board({ children }: Props) {
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
+      if (e.shiftKey) setMode(KeyModeType.side);
+      if (e.ctrlKey) setMode(KeyModeType.center);
+    },
+    [handleKeyboardGestures]
+  );
+
+  const handleKeyUp = useCallback(
+    (e: KeyboardEvent) => {
       const index = getIndexAttribute(e.target);
       if (index) {
         handleKeyboardGestures(e);
       }
     },
-    [handleKeyboardGestures]
+    [handleKeyboardGestures, setMode]
   );
 
-  const handleMouseDown = (e: Event | MouseEvent) => {
+  const handleMouseDown = (e: Event) => {
+    if (keyboardRef.current?.contains(e.target as Node)) return;
+
     const index = getIndexAttribute(e.target);
     if (!index || !boardRef.current?.contains(e.target as Node))
       return setActive([]);
@@ -72,17 +85,18 @@ function Board({ children }: Props) {
     movingGestureCells.current.push(getIndexAttribute(e.target));
   };
 
-  const handleMouseUp = (e: Event | MouseEvent) => {
+  const handleMouseUp = (e: Event) => {
     isMoving.current = false;
     movingGestureCells.current = [];
   };
 
-  const handleMouseMove = (e: Event | MouseEvent) => {
+  const handleMouseMove = (e: Event) => {
     if (!isMoving.current) return;
     const i = getIndexAttribute(e.target);
     if (movingGestureCells.current.includes(i)) return;
     movingGestureCells.current = [...movingGestureCells.current, i];
-    setActive(movingGestureCells.current);
+
+    setActive(movingGestureCells.current, (e as KeyboardEvent).shiftKey);
   };
 
   const handleResize = (e: Event) => {
@@ -93,6 +107,7 @@ function Board({ children }: Props) {
 
   // to detect cliocks outside the board
   useEventListener('keydown', handleKeyDown);
+  useEventListener('keyup', handleKeyUp);
   useEventListener('mousedown', handleMouseDown);
   useEventListener('mouseup', handleMouseUp);
   useEventListener('mousemove', handleMouseMove);
@@ -111,7 +126,7 @@ function Board({ children }: Props) {
       >
         {children}
       </div>
-      <Keyboard width={keyboardWidth} />
+      <Keyboard width={keyboardWidth} ref={keyboardRef} />
     </div>
   );
 }

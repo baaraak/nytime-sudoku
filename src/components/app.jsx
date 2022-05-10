@@ -7,6 +7,7 @@ import DigitsModal from './digits-modal';
 import Logo from './logo';
 import { useTimer } from 'hooks/useTimer';
 import { useBoard } from 'hooks/useBoard';
+import Header from './header';
 
 function App() {
   const [gameData, setGameData] = useState(null);
@@ -23,6 +24,7 @@ function App() {
 
   return (
     <div className="app flex align-center justify-center h-screen">
+      <Header />
       {/*<div className="container mx-auto mt-20 flex flex-col items-center">
         <Logo />
         <div className="text-center text-xl mt-20 mb-4 text-primary-content">

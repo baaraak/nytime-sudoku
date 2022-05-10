@@ -10,12 +10,21 @@ export type Cell = {
   cPencilmarks: number[];
 };
 
+export enum KeyModeType {
+  normal,
+  center,
+  side,
+  color,
+}
+
 type State = {
   puzzle: Cell[] | undefined;
+  mode: KeyModeType;
+  setMode: (mode: KeyModeType) => void;
 
-  setActive: (index: number | number[]) => void;
+  setActive: (index: number | number[], concat?: boolean) => void;
   setPuzzle: (puzzle: number[]) => void;
-  updateCellValue: (index: number, value: number) => void;
+  updateCellValue: (value: number) => void;
   onDoubleClick: (index: number) => void;
 
   handleKeyboardGestures: (e: KeyboardEvent) => void;
@@ -26,10 +35,12 @@ const BoardStateContext = React.createContext<State | undefined>(undefined);
 
 function BoardProvider({ children }: BoardProviderProps) {
   const [puzzle, setPuzzle] = React.useState<Cell[]>();
+  const [mode, setMode] = React.useState(KeyModeType.normal);
 
   const updateCellValue = (value: number) => {
     setPuzzle((p) =>
       p?.map((cell, i) => {
+        // console.log(cell.active, i);
         if (cell.active && !cell.given) return { ...cell, value };
         return cell;
       })
@@ -48,14 +59,20 @@ function BoardProvider({ children }: BoardProviderProps) {
     setPuzzle(p);
   };
 
-  const setActive = (indexes: number | number[]) => {
+  const setActive = (indexes: number | number[], concat = false) => {
+    // if concat is true, we add additional indexes to the active cells,
+    // else we set the active cells to the given indexes
     setPuzzle((p) =>
-      p?.map((cell, i) => ({
-        ...cell,
-        active: Array.isArray(indexes)
+      p?.map((cell, i) => {
+        if (concat && cell.active) return cell;
+        const active = Array.isArray(indexes)
           ? indexes.includes(cell.index)
-          : i === indexes,
-      }))
+          : i === indexes;
+        return {
+          ...cell,
+          active: active,
+        };
+      })
     );
   };
 
@@ -76,7 +93,10 @@ function BoardProvider({ children }: BoardProviderProps) {
       arr.includes(item) ? arr.filter((i) => i !== item) : [...arr, item];
     // TODO: find better way then e.which (deprecated), problem with shiftKey+number return symbol
     let charCode = String.fromCharCode(e.which).toLowerCase();
-
+    console.log('***********************');
+    console.log(e.shiftKey || e.ctrlKey);
+    console.log('***********************');
+    if (e.shiftKey || e.ctrlKey) setMode(KeyModeType.normal);
     if (e.shiftKey && isNumeric(charCode)) {
       // User clicked shiftKey+number = side pencil marks
       setPuzzle((p) =>
@@ -139,6 +159,8 @@ function BoardProvider({ children }: BoardProviderProps) {
   };
 
   const value = {
+    mode,
+    setMode,
     puzzle,
     setPuzzle: onSetPuzzle,
     updateCellValue,

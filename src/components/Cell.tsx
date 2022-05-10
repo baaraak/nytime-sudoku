@@ -34,7 +34,7 @@ function Cell({
               <span key={n}>{n}</span>
             ))}
           </div>
-          <div className="center-pencil-marks">{cPencilmarks}</div>
+          <div className="center-pencil-marks">{cPencilmarks.sort()}</div>
         </>
       )}
     </div>
