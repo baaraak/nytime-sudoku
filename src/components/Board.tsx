@@ -75,12 +75,15 @@ function Board({ children }: Props) {
   );
 
   const handleMouseDown = (e: Event) => {
+    // if the user clicked on the keyboard: do nothing
     if (keyboardRef.current?.contains(e.target as Node)) return;
 
     const index = getIndexAttribute(e.target);
+    // user clicked outeside the board: clear active cells
     if (!index || !boardRef.current?.contains(e.target as Node))
       return setActive([]);
 
+    // user clicked on a cell: store the hovered cells index
     isMoving.current = true;
     movingGestureCells.current.push(getIndexAttribute(e.target));
   };
